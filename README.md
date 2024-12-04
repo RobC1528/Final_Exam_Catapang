@@ -1,95 +1,43 @@
 ---
-- name: Install and Configure Nginx and Prometheus
+- name: Setup Nginx and Prometheus on CentOS and Ubuntu servers
   hosts: all
   become: true
-  vars:
-    ansible_user: "your_username"  # You can specify a default user here if needed
-  
   tasks:
-    # Install and Configure Nginx on Ubuntu
-    - name: Install Nginx (Ubuntu)
-      apt:
+
+    # Install Nginx (for Ubuntu and CentOS)
+    - name: Install Nginx on Ubuntu and CentOS
+      package:
         name: nginx
         state: present
-      when: ansible_facts['distribution'] == 'Ubuntu'
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Install and Configure Nginx on CentOS
-    - name: Install Nginx (CentOS)
-      yum:
-        name: nginx
-        state: present
-      when: ansible_facts['distribution'] == 'CentOS'
-
-    # Configure Nginx on Ubuntu
-    - name: Configure Nginx (Ubuntu)
-      template:
-        src: templates/nginx_config.j2
-        dest: /etc/nginx/sites-available/default
-      when: ansible_facts['distribution'] == 'Ubuntu'
-
-    # Configure Nginx on CentOS
-    - name: Configure Nginx (CentOS)
-      copy:
-        src: /etc/nginx/nginx.conf
-        dest: /etc/nginx/nginx.conf
-      when: ansible_facts['distribution'] == 'CentOS'
-
-    # Ensure Nginx is started and enabled on Ubuntu
-    - name: Ensure Nginx is started and enabled (Ubuntu)
+    # Start and enable Nginx (for Ubuntu and CentOS)
+    - name: Start and enable Nginx service
       service:
         name: nginx
         state: started
         enabled: yes
-      when: ansible_facts['distribution'] == 'Ubuntu'
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Ensure Nginx is started and enabled on CentOS
-    - name: Ensure Nginx is started and enabled (CentOS)
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-      when: ansible_facts['distribution'] == 'CentOS'
-
-    # Install and Configure Prometheus on Ubuntu (separate server)
-    - name: Install Prometheus (Ubuntu)
-      apt:
+    # Install Prometheus (for Ubuntu and CentOS)
+    - name: Install Prometheus on Ubuntu and CentOS
+      package:
         name: prometheus
         state: present
-      when: "'prometheus_servers' in group_names and ansible_facts['distribution'] == 'Ubuntu'"
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Install and Configure Prometheus on CentOS (separate server)
-    - name: Install Prometheus (CentOS)
-      yum:
-        name: prometheus
-        state: present
-      when: "'prometheus_servers' in group_names and ansible_facts['distribution'] == 'CentOS'"
-
-    # Ensure Prometheus is started and enabled on Ubuntu
-    - name: Ensure Prometheus is started and enabled (Ubuntu)
+    # Start and enable Prometheus service (for Ubuntu and CentOS)
+    - name: Start and enable Prometheus service
       service:
         name: prometheus
         state: started
         enabled: yes
-      when: "'prometheus_servers' in group_names and ansible_facts['distribution'] == 'Ubuntu'"
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Ensure Prometheus is started and enabled on CentOS
-    - name: Ensure Prometheus is started and enabled (CentOS)
-      service:
-        name: prometheus
-        state: started
-        enabled: yes
-      when: "'prometheus_servers' in group_names and ansible_facts['distribution'] == 'CentOS'"
-
-    # Change MOTD
-    - name: Change MOTD
+    # Change MOTD message (for Ubuntu and CentOS)
+    - name: Change MOTD to "Ansible Managed by {{ ansible_user }}"
       lineinfile:
         path: /etc/motd
         line: "Ansible Managed by {{ ansible_user }}"
         create: yes
-      notify:
-        - Reboot Server (Optional for MOTD change)
-
-  handlers:
-    - name: Reboot Server
-      reboot:
-        reboot_timeout: 300
+        state: present
