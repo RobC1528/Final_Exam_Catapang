@@ -1,0 +1,5 @@
+[ubuntu_servers]
+192.168.56.14
+
+[centos_servers]
+192.168.56.17 ansible_user=rcatapang
