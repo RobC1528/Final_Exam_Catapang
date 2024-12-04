@@ -1,35 +1,59 @@
 ---
-- name: Setup Nginx and Prometheus on CentOS and Ubuntu servers
+- name: Setup Apache and Netdata on CentOS and Ubuntu servers
   hosts: all
   become: true
   tasks:
 
-    # Install Nginx (for Ubuntu and CentOS)
-    - name: Install Nginx on Ubuntu and CentOS
+    # Install Apache (for Ubuntu and CentOS)
+    - name: Install Apache on Ubuntu and CentOS
       package:
-        name: nginx
+        name: apache2
         state: present
-      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
+      when: ansible_facts['os_family'] == 'Debian'
 
-    # Start and enable Nginx (for Ubuntu and CentOS)
-    - name: Start and enable Nginx service
+    - name: Install Apache on CentOS
+      package:
+        name: httpd
+        state: present
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    # Start and enable Apache service (for Ubuntu and CentOS)
+    - name: Start and enable Apache service
       service:
-        name: nginx
+        name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
         state: started
         enabled: yes
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Install Prometheus (for Ubuntu and CentOS)
-    - name: Install Prometheus on Ubuntu and CentOS
+    # Install Netdata (for Ubuntu and CentOS)
+    - name: Install dependencies for Netdata (Ubuntu and CentOS)
       package:
-        name: prometheus
+        name:
+          - curl
+          - gcc
+          - make
+          - zlib1g-dev
+          - libuuid1
+          - libmnl-dev
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
 
-    # Start and enable Prometheus service (for Ubuntu and CentOS)
-    - name: Start and enable Prometheus service
+    # Install Netdata (for Ubuntu)
+    - name: Install Netdata on Ubuntu
+      shell: |
+        bash <(curl -Ss https://my-netdata.io/kickstart.sh)
+      when: ansible_facts['os_family'] == 'Debian'
+
+    # Install Netdata (for CentOS)
+    - name: Install Netdata on CentOS
+      shell: |
+        bash <(curl -Ss https://my-netdata.io/kickstart.sh)
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    # Start and enable Netdata service (for Ubuntu and CentOS)
+    - name: Start and enable Netdata service
       service:
-        name: prometheus
+        name: netdata
         state: started
         enabled: yes
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
